@@ -67,29 +67,31 @@ def main():
     # Touch Action 1: Launch Samsung / Android Dialer App
     print_touch_action(1, 3, "LAUNCH APP", "Package: com.samsung.android.dialer", x=140, y=2100)
     if not use_mock:
-        # Launch phone app via native Android intent
-        run_cmd("am start -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -n com.samsung.android.dialer/.DialtactsActivity || am start -a android.intent.action.DIAL")
+        # Launch phone dialer with number pre-loaded
+        run_cmd(f"am start -a android.intent.action.DIAL -d tel:{args.number}")
         if has_adb:
             run_cmd("adb shell input tap 140 2100")
         time.sleep(1.5)
 
     # Touch Action 2: Focus Search Field & Input Contact Name
-    print_touch_action(2, 3, "TEXT INPUT / TAP", f"Tap Search Bar & Type '{args.contact}'", x=450, y=280)
+    print_touch_action(2, 3, "TEXT INPUT / TAP", f"Target Contact: '{args.contact}' ({args.number})", x=450, y=280)
     if not use_mock:
         if has_adb:
             run_cmd("adb shell input tap 450 280")
             run_cmd(f"adb shell input text '{args.contact}'")
         time.sleep(1.0)
 
-    # Touch Action 3: Tap Call Contact Icon / Initiate Intent Call
-    print_touch_action(3, 3, "TAP CALL BUTTON", f"Initiate Call to '{args.contact}' ({args.number})", x=540, y=1850)
+    # Touch Action 3: Tap Call Contact Icon / Trigger CALL Keyevent
+    print_touch_action(3, 3, "TAP CALL BUTTON", f"Press Green Call Button for '{args.contact}' ({args.number})", x=540, y=1850)
     if not use_mock:
         if has_termux_api:
             run_cmd(f"termux-telephony-call '{args.number}'")
         else:
-            # Trigger native Android Call Intent directly on phone
-            run_cmd(f"am start -a android.intent.action.CALL -d tel:{args.number} || am start -a android.intent.action.VIEW -d tel:{args.number}")
+            # Trigger native Android DIAL intent & CALL keyevent (keycode 5)
+            run_cmd(f"am start -a android.intent.action.CALL -d tel:{args.number} || am start -a android.intent.action.DIAL -d tel:{args.number}")
+            run_cmd("input keyevent 5 || true")
         if has_adb:
+            run_cmd("adb shell input keyevent 5")
             run_cmd("adb shell input tap 540 1850")
         time.sleep(1.0)
 
