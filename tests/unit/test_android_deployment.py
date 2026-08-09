@@ -3,6 +3,8 @@
 import pytest
 from omnibench.drivers.android import AndroidDriver
 from omnibench.benchmarks.adapters.androidworld import AndroidWorldAdapter
+from omnibench.gateway.adapters import LocalONNXAdapter
+from omnibench.engine.onnx_engine import ONNXEngine, EngineConfig
 
 
 class TestAndroidDeploymentPrimitives:
@@ -32,3 +34,8 @@ class TestAndroidDeploymentPrimitives:
         call_task = next(t for t in tasks if t.task_id == "android_samsung_call_vanya_001")
         assert "Vanya Chaudhary" in call_task.instruction
         assert call_task.platform == "android"
+
+    def test_onnx_adapter_mobile_execution(self):
+        engine = ONNXEngine(EngineConfig())
+        adapter = LocalONNXAdapter(engine=engine)
+        assert adapter.is_available() is True
