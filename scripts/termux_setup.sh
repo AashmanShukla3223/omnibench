@@ -13,10 +13,15 @@ if [ "$1" = "--dry-run" ]; then
     exit 0
 fi
 
-# 1. Update Termux Packages
-echo "[1/4] Updating Termux packages & installing dependencies..."
+# 1. Update Termux Packages & Build Dependencies
+echo "[1/4] Updating Termux packages & installing C build dependencies..."
 pkg update -y
-pkg install -y python git android-tools pillow numpy
+pkg install -y python python-pip git android-tools clang libjpeg-turbo zlib
+
+# 2. Install Python Wheel Dependencies via PIP
+echo "[2/4] Installing numpy, Pillow, & huggingface_hub via pip..."
+pip install --upgrade pip
+pip install numpy pillow huggingface_hub
 
 # 2. Setup / Pull OmniBench Repository
 echo "[2/4] Setting up OmniBench codebase..."
