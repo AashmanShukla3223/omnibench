@@ -13,37 +13,29 @@ if [ "$1" = "--dry-run" ]; then
     exit 0
 fi
 
-# 1. Update Termux Packages & Build Dependencies
-echo "[1/4] Updating Termux packages & installing C build dependencies..."
-pkg update -y || true
-
-for p in python git android-tools clang libjpeg-turbo zlib; do
-    echo " -> Installing package: $p"
+# 1. Update Termux Packages & Fast Pre-compiled Binary Dependencies
+echo "[1/4] Installing Termux pre-compiled binary packages (Fast Mode)..."
+for p in python git android-tools python-numpy python-pillow; do
     pkg install -y "$p" || true
 done
-
-# 2. Install Python Wheel Dependencies via PIP
-echo "[2/4] Installing numpy, Pillow, & huggingface_hub via pip..."
-python3 -m pip install --upgrade pip || true
-python3 -m pip install numpy pillow huggingface_hub || true
 
 # 2. Setup / Pull OmniBench Repository
 echo "[2/4] Setting up OmniBench codebase..."
 if [ -d "omnibench" ]; then
     cd omnibench
-    git pull origin master
+    git pull origin master || true
 else
     if [ ! -f "pyproject.toml" ]; then
-        git clone https://github.com/AashmanShukla3223/omnibench.git
+        git clone --depth 1 https://github.com/AashmanShukla3223/omnibench.git
         cd omnibench
     fi
 fi
 
-# 3. Install Package & Download Model Weights
-echo "[3/4] Installing Python package & downloading model weights..."
-pip install -e .
-pip install huggingface_hub
-python scripts/download_model.py --format gguf
+# 3. Fast PIP Install (No Source Compilation)
+echo "[3/4] Registering package & downloading model weights..."
+python3 -m pip install --prefer-binary --no-deps -e . || true
+python3 -m pip install --prefer-binary huggingface_hub || true
+python3 scripts/download_model.py --format gguf
 
 # 4. Launch Mobile Task Execution
 echo "[4/4] Launching Mobile Phone Contact Calling Task..."
