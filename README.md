@@ -124,8 +124,7 @@ Run OmniBench directly on your Android phone using our CPU-optimized GGUF model:
 # Inside Termux app on Android:
 pkg update && pkg install python git android-tools -y
 git clone https://github.com/AashmanShukla3223/omnibench.git
-cd omnibench && pip install -e .
-python -c "from huggingface_hub import hf_hub_download; hf_hub_download('AashmanShukla3223/omnibench-1.0-100m', 'model.gguf', local_dir='.')"
+python scripts/download_model.py --format gguf
 python scripts/deploy_android.py --contact "Vanya Chaudhary"
 ```
 
