@@ -16,13 +16,18 @@ class TestMultiFormatEngines:
         assert res["action_json"]["engine"] == "gguf"
 
     def test_gguf_exporter(self, tmp_path):
+        import struct
         out_file = tmp_path / "model.gguf"
         export_gguf_model(out_file, quantization="q4_k_m")
         assert out_file.exists()
         assert out_file.stat().st_size > 0
         with open(out_file, "rb") as f:
-            magic = f.read(4)
+            header = f.read(24)
+            magic, version, tensor_count, metadata_kv_count = struct.unpack("<4sIQQ", header)
             assert magic == b"GGUF"
+            assert version == 3
+            assert tensor_count == 0
+            assert metadata_kv_count == 1
 
     def test_mlx_engine_execution(self):
         engine = MLXEngine(MLXConfig(quantization="4bit"))

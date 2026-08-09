@@ -60,17 +60,37 @@ class GGUFEngine:
 
 
 def export_gguf_model(output_path: Path, quantization: str = "q4_k_m") -> Path:
-    """Exports 100M model binary to GGUF format."""
+    """Exports 100M model binary to GGUF v3 specification format."""
+    import struct
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    header = b"GGUF\x03\x00\x00\x00"  # Magic GGUF v3 header
-    dummy_tensor_data = b"\x00" * 32768
-    metadata = json.dumps({"arch": "omnibench_vlm", "params": "100M", "quant": quantization}).encode("utf-8")
     
+    # GGUF v3 Header Specification:
+    # magic: 4 bytes (b"GGUF")
+    # version: uint32 (3)
+    # tensor_count: uint64 (0 for dummy model export)
+    # metadata_kv_count: uint64 (1 metadata pair)
+    tensor_count = 0
+    metadata_kv_count = 1
+    header_bytes = struct.pack("<4sIQQ", b"GGUF", 3, tensor_count, metadata_kv_count)
+
+    # Key-value metadata pair 0: general.architecture = string ("omnibench_vlm")
+    key_str = "general.architecture".encode("utf-8")
+    val_str = f"omnibench_vlm_{quantization}".encode("utf-8")
+    
+    # GGUF Value type 8 = GGUF_METADATA_VALUE_TYPE_STRING
+    metadata_bytes = (
+        len(key_str).to_bytes(8, "little") + key_str +
+        (8).to_bytes(4, "little") +
+        len(val_str).to_bytes(8, "little") + val_str
+    )
+
+    dummy_tensor_data = b"\x00" * 4096
+
     with open(output_path, "wb") as f:
-        f.write(header)
-        f.write(len(metadata).to_bytes(4, "little"))
-        f.write(metadata)
+        f.write(header_bytes)
+        f.write(metadata_bytes)
         f.write(dummy_tensor_data)
 
-    logger.info(f"Exported GGUF model ({quantization}) -> {output_path}")
+    logger.info(f"Exported GGUF v3 model ({quantization}) -> {output_path}")
     return output_path
