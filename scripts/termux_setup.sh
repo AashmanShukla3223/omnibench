@@ -33,8 +33,9 @@ else
     fi
 fi
 
-# 3. Launch Zero-Dependency Execution Directly
-echo ""
+# 3. Direct CDN Model Download & Zero-Dependency Execution
+echo "[3/3] Downloading model weights directly from HF CDN..."
+python3 scripts/download_model.py --format gguf
 python3 scripts/termux_zero_dep.py --contact "Vanya Chaudhary"
 
 echo "--------------------------------------------------------"
