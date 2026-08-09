@@ -15,13 +15,17 @@ fi
 
 # 1. Update Termux Packages & Build Dependencies
 echo "[1/4] Updating Termux packages & installing C build dependencies..."
-pkg update -y
-pkg install -y python python-pip git android-tools clang libjpeg-turbo zlib
+pkg update -y || true
+
+for p in python git android-tools clang libjpeg-turbo zlib; do
+    echo " -> Installing package: $p"
+    pkg install -y "$p" || true
+done
 
 # 2. Install Python Wheel Dependencies via PIP
 echo "[2/4] Installing numpy, Pillow, & huggingface_hub via pip..."
-pip install --upgrade pip
-pip install numpy pillow huggingface_hub
+python3 -m pip install --upgrade pip || true
+python3 -m pip install numpy pillow huggingface_hub || true
 
 # 2. Setup / Pull OmniBench Repository
 echo "[2/4] Setting up OmniBench codebase..."
