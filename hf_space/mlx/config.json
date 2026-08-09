@@ -1,0 +1,7 @@
+{
+  "model_type": "omnibench_vlm",
+  "format": "mlx",
+  "num_params": "100M",
+  "quantization": "4bit",
+  "device": "metal"
+}

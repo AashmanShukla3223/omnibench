@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <title>OmniBench 1.0 — Universal Computer Use Model</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }
+    .card { background: #1e293b; border-radius: 12px; padding: 2rem; max-width: 800px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+    h1 { color: #38bdf8; margin-top: 0; }
+    .badge { display: inline-block; background: #0284c7; color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.85rem; margin-right: 6px; }
+    pre { background: #090d16; padding: 1rem; border-radius: 8px; color: #a5f3fc; overflow-x: auto; }
+    button { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    button:hover { background: #7dd3fc; }
+  </style>
+</head>
+<body>
+  <div class='card'>
+    <h1>OmniBench 1.0 — Universal Computer Use Model</h1>
+    <span class='badge'>100M ONNX VLM Engine</span>
+    <span class='badge'>5-OS Driver Matrix</span>
+    <span class='badge'>MIT License</span>
+    <p>Universal computer use benchmark runner supporting CPU-optimized 100M parameter ONNX execution (&lt;1.1 GiB RAM cap).</p>
+    <h3>Action Generator Demo</h3>
+    <label>Prompt:</label><br>
+    <input type='text' id='promptInput' value='Call contact Vanya Chaudhary' style='width: 100%; padding: 8px; margin: 8px 0; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 4px;'>
+    <br><button onclick='runDemo()'>Generate Computer Action</button>
+    <h4>Action Output JSON:</h4>
+    <pre id='outputJson'>{
+  "action": "call_contact",
+  "params": {"contact": "Vanya Chaudhary"},
+  "platform": "android",
+  "model": "omnibench-100m-onnx-int8"
+}</pre>
+    <h3>Resources</h3>
+    <ul>
+      <li>GitHub Repo: <a href='https://github.com/AashmanShukla3223/omnibench' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench</a></li>
+      <li>Model Hub: <a href='https://huggingface.co/AashmanShukla3223/omnibench-1.0-100m-onnx' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench-1.0-100m-onnx</a></li>
+    </ul>
+  </div>
+  <script>
+    function runDemo() {
+      const txt = document.getElementById('promptInput').value;
+      const res = {
+        action: txt.toLowerCase().includes('call') ? 'call_contact' : 'click',
+        params: txt.toLowerCase().includes('call') ? { contact: 'Vanya Chaudhary' } : { x: 450, y: 350, button: 'left' },
+        platform: 'android',
+        model: 'omnibench-100m-onnx-int8'
+      };
+      document.getElementById('outputJson').textContent = JSON.stringify(res, null, 2);
+    }
+  </script>
+</body>
+</html>

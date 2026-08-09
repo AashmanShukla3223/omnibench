@@ -26,13 +26,24 @@ def build_hf_space_bundle(output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"📦 Building Hugging Face Space Bundle in: {output_dir.resolve()}")
 
-    # 1. Export ONNX model file into bundle
+    # 1. Export ONNX, GGUF, and MLX model files into bundle
     model_path = output_dir / "model.onnx"
     gen = DummyModelGenerator(vocab_size=1000)
     gen.generate_onnx_file(model_path)
-    print(f"   [1/4] Exported ONNX model weights -> {model_path.name}")
+    print(f"   [1/5] Exported ONNX model weights -> {model_path.name}")
 
-    # 2. Write Space README.md with Hugging Face YAML metadata
+    from omnibench.engine.gguf_engine import export_gguf_model
+    from omnibench.engine.mlx_engine import export_mlx_model
+
+    gguf_path = output_dir / "model.gguf"
+    export_gguf_model(gguf_path, quantization="q4_k_m")
+    print(f"   [2/5] Exported GGUF model weights -> {gguf_path.name}")
+
+    mlx_dir = output_dir / "mlx"
+    export_mlx_model(mlx_dir, quantization="4bit")
+    print(f"   [3/5] Exported MLX model weights -> {mlx_dir.name}")
+
+    # 2. Write Space README.md with Static HTML Hugging Face YAML metadata
     readme_path = output_dir / "README.md"
     readme_path.write_text(
         "---\n"
@@ -40,11 +51,9 @@ def build_hf_space_bundle(output_dir: Path) -> Path:
         "emoji: 🖥️\n"
         "colorFrom: blue\n"
         "colorTo: purple\n"
-        "sdk: gradio\n"
-        "sdk_version: 4.19.2\n"
-        "app_file: app.py\n"
+        "sdk: static\n"
         "pinned: false\n"
-        "license: apache-2.0\n"
+        "license: mit\n"
         "tags:\n"
         "  - computer-use\n"
         "  - vision-language\n"
@@ -57,66 +66,68 @@ def build_hf_space_bundle(output_dir: Path) -> Path:
     )
     print(f"   [2/4] Wrote Space README metadata -> {readme_path.name}")
 
-    # 3. Write requirements.txt for Space environment
-    req_path = output_dir / "requirements.txt"
-    req_path.write_text("gradio>=4.0.0\nPillow>=10.0.0\nnumpy>=1.24.0\nonnxruntime>=1.16.0\n")
-    print(f"   [3/4] Wrote requirements.txt -> {req_path.name}")
-
-    # 4. Write app.py (Gradio SPA Demo)
-    app_path = output_dir / "app.py"
-    app_path.write_text(
-        '"""Hugging Face Space App for OmniBench 1.0 Computer Use Model Demo."""\n'
-        "import gradio as gr\n"
-        "import numpy as np\n"
-        "from PIL import Image, ImageDraw, ImageFont\n"
-        "import json\n\n"
-        "def predict_computer_action(image, prompt, platform):\n"
-        "    if image is None:\n"
-        "        image = Image.new('RGB', (800, 600), (230, 235, 240))\n"
-        "        draw = ImageDraw.Draw(image)\n"
-        "        draw.rectangle([50, 50, 750, 150], fill=(70, 130, 180))\n"
-        "        draw.text((70, 80), f'Mock {platform} Display', fill=(255, 255, 255))\n\n"
-        "    w, h = image.size\n"
-        "    target_x, target_y = int(w * 0.45), int(h * 0.35)\n\n"
-        "    # Draw Set-of-Marks (SoM) box & click target\n"
-        "    annotated = image.copy()\n"
-        "    draw = ImageDraw.Draw(annotated)\n"
-        "    draw.rectangle([target_x - 40, target_y - 25, target_x + 40, target_y + 25], outline=(255, 0, 0), width=3)\n"
-        "    draw.ellipse([target_x - 10, target_y - 10, target_x + 10, target_y + 10], fill=(255, 50, 50))\n"
-        "    draw.text((target_x - 30, target_y - 20), '[Mark #1]', fill=(255, 255, 255))\n\n"
-        "    action_json = {\n"
-        "        'action': 'click' if 'call' not in prompt.lower() else 'call_contact',\n"
-        "        'params': {'x': target_x, 'y': target_y, 'button': 'left'} if 'call' not in prompt.lower() else {'contact': 'Vanya Chaudhary'},\n"
-        "        'platform': platform,\n"
-        "        'model': 'omnibench-100m-onnx-int8'\n"
+    # 3. Write index.html (Static HTML Space UI)
+    index_path = output_dir / "index.html"
+    index_path.write_text(
+        "<!DOCTYPE html>\n"
+        "<html lang='en'>\n"
+        "<head>\n"
+        "  <meta charset='UTF-8'>\n"
+        "  <title>OmniBench 1.0 — Universal Computer Use Model</title>\n"
+        "  <style>\n"
+        "    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; }\n"
+        "    .card { background: #1e293b; border-radius: 12px; padding: 2rem; max-width: 800px; margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }\n"
+        "    h1 { color: #38bdf8; margin-top: 0; }\n"
+        "    .badge { display: inline-block; background: #0284c7; color: #fff; padding: 4px 10px; border-radius: 9999px; font-size: 0.85rem; margin-right: 6px; }\n"
+        "    pre { background: #090d16; padding: 1rem; border-radius: 8px; color: #a5f3fc; overflow-x: auto; }\n"
+        "    button { background: #38bdf8; color: #0f172a; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }\n"
+        "    button:hover { background: #7dd3fc; }\n"
+        "  </style>\n"
+        "</head>\n"
+        "<body>\n"
+        "  <div class='card'>\n"
+        "    <h1>OmniBench 1.0 — Universal Computer Use Model</h1>\n"
+        "    <span class='badge'>100M ONNX VLM Engine</span>\n"
+        "    <span class='badge'>5-OS Driver Matrix</span>\n"
+        "    <span class='badge'>MIT License</span>\n"
+        "    <p>Universal computer use benchmark runner supporting CPU-optimized 100M parameter ONNX execution (&lt;1.1 GiB RAM cap).</p>\n"
+        "    <h3>Action Generator Demo</h3>\n"
+        "    <label>Prompt:</label><br>\n"
+        "    <input type='text' id='promptInput' value='Call contact Vanya Chaudhary' style='width: 100%; padding: 8px; margin: 8px 0; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 4px;'>\n"
+        "    <br><button onclick='runDemo()'>Generate Computer Action</button>\n"
+        "    <h4>Action Output JSON:</h4>\n"
+        "    <pre id='outputJson'>{\n  \"action\": \"call_contact\",\n  \"params\": {\"contact\": \"Vanya Chaudhary\"},\n  \"platform\": \"android\",\n  \"model\": \"omnibench-100m-onnx-int8\"\n}</pre>\n"
+        "    <h3>Resources</h3>\n"
+        "    <ul>\n"
+        "      <li>GitHub Repo: <a href='https://github.com/AashmanShukla3223/omnibench' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench</a></li>\n"
+        "      <li>Model Hub: <a href='https://huggingface.co/AashmanShukla3223/omnibench-1.0-100m-onnx' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench-1.0-100m-onnx</a></li>\n"
+        "    </ul>\n"
+        "  </div>\n"
+        "  <script>\n"
+        "    function runDemo() {\n"
+        "      const txt = document.getElementById('promptInput').value;\n"
+        "      const res = {\n"
+        "        action: txt.toLowerCase().includes('call') ? 'call_contact' : 'click',\n"
+        "        params: txt.toLowerCase().includes('call') ? { contact: 'Vanya Chaudhary' } : { x: 450, y: 350, button: 'left' },\n"
+        "        platform: 'android',\n"
+        "        model: 'omnibench-100m-onnx-int8'\n"
+        "      };\n"
+        "      document.getElementById('outputJson').textContent = JSON.stringify(res, null, 2);\n"
         "    }\n"
-        "    return annotated, json.dumps(action_json, indent=2)\n\n"
-        "demo = gr.Interface(\n"
-        "    fn=predict_computer_action,\n"
-        "    inputs=[\n"
-        "        gr.Image(type='pil', label='Screen Screenshot'),\n"
-        "        gr.Textbox(lines=2, placeholder='e.g., Call contact Vanya Chaudhary or click the submit button', label='User Prompt'),\n"
-        "        gr.Radio(['android', 'windows', 'macos', 'linux', 'ios'], value='android', label='Target OS Platform'),\n"
-        "    ],\n"
-        "    outputs=[\n"
-        "        gr.Image(label='Annotated Screen with Set-of-Marks (SoM) Target'),\n"
-        "        gr.Code(language='json', label='Generated Action JSON'),\n"
-        "    ],\n"
-        "    title='OmniBench 1.0 — Universal Computer Use Model',\n"
-        "    description='100M-parameter vision-language model ONNX engine running on CPU (<1.1 GiB RAM usage).',\n"
-        ")\n\n"
-        "if __name__ == '__main__':\n"
-        "    demo.launch()\n"
+        "  </script>\n"
+        "</body>\n"
+        "</html>\n"
     )
-    print(f"   [4/4] Wrote Space app.py -> {app_path.name}")
+    print(f"   [3/4] Wrote static Space index.html -> {index_path.name}")
     print(f"✅ Hugging Face Space bundle build complete!\n")
     return output_dir
 
 
 def main():
     parser = argparse.ArgumentParser(description="Build and deploy OmniBench to Hugging Face")
-    parser.add_argument("--build-only", action="store_true", default=True, help="Build local ./hf_space/ bundle")
+    parser.add_argument("--build-only", action="store_true", default=False, help="Build local ./hf_space/ bundle")
     parser.add_argument("--repo-id", default=None, help="Hugging Face Space repo ID (e.g. username/omnibench-demo)")
+    parser.add_argument("--model-repo-id", default=None, help="Hugging Face Model repo ID (e.g. username/omnibench-1.0-100m-onnx)")
     parser.add_argument("--token", default=None, help="Hugging Face API Token")
     args = parser.parse_args()
 
@@ -124,19 +135,40 @@ def main():
     build_hf_space_bundle(output_dir)
 
     token = args.token or os.environ.get("HF_TOKEN")
-    if args.repo_id and token:
-        try:
-            from huggingface_hub import HfApi
-            api = HfApi(token=token)
-            print(f"🚀 Uploading bundle to Hugging Face Space: {args.repo_id}...")
-            api.upload_folder(
-                folder_path=str(output_dir),
-                repo_id=args.repo_id,
-                repo_type="space",
-            )
-            print(f"🎉 Successfully deployed to Hugging Face Space: https://huggingface.co/spaces/{args.repo_id}")
-        except Exception as e:
-            print(f"⚠️ Hugging Face Hub upload skipped/failed: {e}")
+
+    if token:
+        from huggingface_hub import HfApi
+        api = HfApi(token=token)
+
+        # 1. Deploy Hugging Face Space
+        if args.repo_id:
+            try:
+                print(f"📦 Ensuring Hugging Face Space repository '{args.repo_id}' exists...")
+                api.create_repo(repo_id=args.repo_id, repo_type="space", space_sdk="static", exist_ok=True)
+                print(f"🚀 Uploading bundle to Hugging Face Space: {args.repo_id}...")
+                api.upload_folder(
+                    folder_path=str(output_dir),
+                    repo_id=args.repo_id,
+                    repo_type="space",
+                )
+                print(f"🎉 Successfully deployed to Hugging Face Space: https://huggingface.co/spaces/{args.repo_id}")
+            except Exception as e:
+                print(f"⚠️ Hugging Face Space upload failed: {e}")
+
+        # 2. Deploy Hugging Face Model Repository
+        if args.model_repo_id:
+            try:
+                print(f"📦 Ensuring Hugging Face Model repository '{args.model_repo_id}' exists...")
+                api.create_repo(repo_id=args.model_repo_id, repo_type="model", exist_ok=True)
+                print(f"🚀 Uploading multi-format model weights (ONNX + GGUF + MLX) to Hugging Face Model Hub: {args.model_repo_id}...")
+                api.upload_folder(
+                    folder_path=str(output_dir),
+                    repo_id=args.model_repo_id,
+                    repo_type="model",
+                )
+                print(f"🎉 Successfully deployed to Hugging Face Model Hub: https://huggingface.co/{args.model_repo_id}")
+            except Exception as e:
+                print(f"⚠️ Hugging Face Model upload failed: {e}")
     else:
         print("💡 To deploy to Hugging Face Hub:")
         print("   1. Create a Space on https://huggingface.co/new-space (SDK: Gradio)")

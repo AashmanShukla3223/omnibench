@@ -128,10 +128,64 @@ class LocalONNXAdapter(BaseAdapter):
 
     def is_available(self) -> bool:
         try:
-            import onnxruntime  # noqa: F401
+            import onnxruntime
             return True
         except ImportError:
             return False
+
+
+class GGUFAdapter(BaseAdapter):
+    """Adapter wrapping llama.cpp / GGUF model engine."""
+
+    name = "gguf"
+
+    def __init__(self, engine: Optional[Any] = None) -> None:
+        self._engine = engine
+
+    def generate(self, request: GatewayRequest) -> GatewayResponse:
+        t0 = time.perf_counter()
+        if self._engine is None:
+            from omnibench.engine.gguf_engine import GGUFEngine
+            self._engine = GGUFEngine()
+            self._engine.load()
+
+        res = self._engine.generate(None, request.prompt)
+        latency = (time.perf_counter() - t0) * 1000.0
+        return GatewayResponse(
+            text=res["text"],
+            action_json=res["action_json"],
+            usage_tokens=32,
+            latency_ms=latency,
+            provider_used="gguf",
+            model_name="omnibench-100m-gguf",
+        )
+
+
+class MLXAdapter(BaseAdapter):
+    """Adapter wrapping Apple Silicon Metal MLX model engine."""
+
+    name = "mlx"
+
+    def __init__(self, engine: Optional[Any] = None) -> None:
+        self._engine = engine
+
+    def generate(self, request: GatewayRequest) -> GatewayResponse:
+        t0 = time.perf_counter()
+        if self._engine is None:
+            from omnibench.engine.mlx_engine import MLXEngine
+            self._engine = MLXEngine()
+            self._engine.load()
+
+        res = self._engine.generate(None, request.prompt)
+        latency = (time.perf_counter() - t0) * 1000.0
+        return GatewayResponse(
+            text=res["text"],
+            action_json=res["action_json"],
+            usage_tokens=32,
+            latency_ms=latency,
+            provider_used="mlx",
+            model_name="omnibench-100m-mlx",
+        )
 
 
 class OpenAIAdapter(BaseAdapter):

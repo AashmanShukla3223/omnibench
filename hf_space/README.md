@@ -3,11 +3,9 @@ title: OmniBench 1.0 — Universal Computer Use Model
 emoji: 🖥️
 colorFrom: blue
 colorTo: purple
-sdk: gradio
-sdk_version: 4.19.2
-app_file: app.py
+sdk: static
 pinned: false
-license: apache-2.0
+license: mit
 tags:
   - computer-use
   - vision-language
