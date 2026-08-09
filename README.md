@@ -136,8 +136,8 @@ Build a self-contained Hugging Face Space Gradio demo:
 # Build local ./hf_space/ bundle
 python scripts/deploy_hf.py
 
-# Push to Hugging Face Hub (with API token)
-python scripts/deploy_hf.py --repo-id <your-username>/omnibench-demo --token <your_hf_token>
+# Push to Hugging Face Hub (Space + Multi-Format Model Hub)
+python scripts/deploy_hf.py --repo-id <your-username>/omnibench-demo --model-repo-id <your-username>/omnibench-1.0-100m --token <your_hf_token>
 ```
 
 ---

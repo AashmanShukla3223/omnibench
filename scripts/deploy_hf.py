@@ -100,7 +100,7 @@ def build_hf_space_bundle(output_dir: Path) -> Path:
         "    <h3>Resources</h3>\n"
         "    <ul>\n"
         "      <li>GitHub Repo: <a href='https://github.com/AashmanShukla3223/omnibench' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench</a></li>\n"
-        "      <li>Model Hub: <a href='https://huggingface.co/AashmanShukla3223/omnibench-1.0-100m-onnx' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench-1.0-100m-onnx</a></li>\n"
+        "      <li>Model Hub: <a href='https://huggingface.co/AashmanShukla3223/omnibench-1.0-100m' style='color:#38bdf8;' target='_blank'>AashmanShukla3223/omnibench-1.0-100m</a></li>\n"
         "    </ul>\n"
         "  </div>\n"
         "  <script>\n"
@@ -127,7 +127,7 @@ def main():
     parser = argparse.ArgumentParser(description="Build and deploy OmniBench to Hugging Face")
     parser.add_argument("--build-only", action="store_true", default=False, help="Build local ./hf_space/ bundle")
     parser.add_argument("--repo-id", default=None, help="Hugging Face Space repo ID (e.g. username/omnibench-demo)")
-    parser.add_argument("--model-repo-id", default=None, help="Hugging Face Model repo ID (e.g. username/omnibench-1.0-100m-onnx)")
+    parser.add_argument("--model-repo-id", default=None, help="Hugging Face Model repo ID (e.g. username/omnibench-1.0-100m)")
     parser.add_argument("--token", default=None, help="Hugging Face API Token")
     args = parser.parse_args()
 
