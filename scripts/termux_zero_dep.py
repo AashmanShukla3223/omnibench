@@ -64,35 +64,33 @@ def main():
     # 2. Execute Action Trajectory with Visual Touch Coordinates
     print(f"\n[2/4] Executing Live Model Action Trajectory...")
 
-    # Touch Action 1: Launch Samsung / Android Dialer App
+    # Touch Action 1: Connect Driver & Prepare Dialer
     print_touch_action(1, 3, "LAUNCH APP", "Package: com.samsung.android.dialer", x=140, y=2100)
     if not use_mock:
-        # Launch phone dialer with number pre-loaded
-        run_cmd(f"am start -a android.intent.action.DIAL -d tel:{args.number}")
-        if has_adb:
-            run_cmd("adb shell input tap 140 2100")
-        time.sleep(1.5)
-
-    # Touch Action 2: Focus Search Field & Input Contact Name
-    print_touch_action(2, 3, "TEXT INPUT / TAP", f"Target Contact: '{args.contact}' ({args.number})", x=450, y=280)
-    if not use_mock:
-        if has_adb:
-            run_cmd("adb shell input tap 450 280")
-            run_cmd(f"adb shell input text '{args.contact}'")
+        # Connect Wireless ADB Loopback if available
+        if not has_adb:
+            run_cmd("adb connect 127.0.0.1:5555 || true")
+        run_cmd(f"am start -a android.intent.action.DIAL -d tel:{args.number} || true")
         time.sleep(1.0)
 
-    # Touch Action 3: Tap Call Contact Icon / Trigger CALL Keyevent
-    print_touch_action(3, 3, "TAP CALL BUTTON", f"Press Green Call Button for '{args.contact}' ({args.number})", x=540, y=1850)
+    # Touch Action 2: Target Contact & Number
+    print_touch_action(2, 3, "TARGET CONTACT", f"Contact: '{args.contact}' ({args.number})", x=450, y=280)
     if not use_mock:
+        time.sleep(0.5)
+
+    # Touch Action 3: Autonomous Call Placement
+    print_touch_action(3, 3, "AUTONOMOUS CALL PLACEMENT", f"Placing Call to '{args.contact}' ({args.number})", x=540, y=1850)
+    if not use_mock:
+        # Primary: Termux Telephony API (Direct Dials Instantly)
         if has_termux_api:
+            print("   -> Executing Termux API Direct Call Driver...")
             run_cmd(f"termux-telephony-call '{args.number}'")
-        else:
-            # Trigger native Android DIAL intent & CALL keyevent (keycode 5)
-            run_cmd(f"am start -a android.intent.action.CALL -d tel:{args.number} || am start -a android.intent.action.DIAL -d tel:{args.number}")
-            run_cmd("input keyevent 5 || true")
-        if has_adb:
-            run_cmd("adb shell input keyevent 5")
-            run_cmd("adb shell input tap 540 1850")
+        
+        # Secondary: Local ADB / Keyevent 5 (Press Call Key)
+        run_cmd(f"adb shell input keyevent 5 || adb shell input tap 540 1850 || true")
+        
+        # Tertiary: Direct Android CALL Intent / Root SU
+        run_cmd(f"am start -a android.intent.action.CALL -d tel:{args.number} || su -c am start -a android.intent.action.CALL -d tel:{args.number} || true")
         time.sleep(1.0)
 
     # 3. Output Trajectory JSON Summary

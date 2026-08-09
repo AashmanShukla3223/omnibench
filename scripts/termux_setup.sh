@@ -17,7 +17,7 @@ fi
 # 1. Install Base Packages (Standard Python + Git + ADB)
 echo "[1/2] Installing base Termux packages (python, git, android-tools)..."
 pkg update -y || true
-for p in python git android-tools; do
+for p in python git android-tools termux-api; do
     pkg install -y "$p" || true
 done
 
