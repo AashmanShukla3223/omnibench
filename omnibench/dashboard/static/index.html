@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniBench 1.0 — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050810;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.08);
+      --accent: #6366f1;
+      --accent2: #22d3ee;
+      --accent3: #f472b6;
+      --pass: #34d399;
+      --fail: #f87171;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --glow: rgba(99,102,241,0.25);
+    }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background gradient mesh */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 80% 80%, rgba(34,211,238,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(244,114,182,0.05) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .app { position: relative; z-index: 1; display: grid; grid-template-rows: auto 1fr; min-height: 100vh; }
+
+    /* ── Header ── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(5,8,16,0.8);
+      backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; box-shadow: 0 0 20px var(--glow);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%,100% { box-shadow: 0 0 20px var(--glow); }
+      50% { box-shadow: 0 0 40px rgba(99,102,241,0.5); }
+    }
+    .logo h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
+    .logo span { color: var(--accent2); }
+    .version-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem; color: var(--text-muted);
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 2px 8px; border-radius: 99px;
+    }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .live-indicator {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.75rem; color: var(--pass);
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--pass);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+    /* ── Main ── */
+    main { padding: 2rem; display: flex; flex-direction: column; gap: 2rem; }
+
+    /* ── Stats bar ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .stat-card:hover { background: var(--surface-hover); transform: translateY(-2px); }
+    .stat-label { font-size: 0.72rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+    .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; }
+    .stat-value.pass { color: var(--pass); }
+    .stat-value.fail { color: var(--fail); }
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.accent2 { color: var(--accent2); }
+    .stat-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+    /* ── Sections ── */
+    .section { display: flex; flex-direction: column; gap: 1rem; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; }
+    .section-title {
+      font-size: 0.85rem; font-weight: 600; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block; width: 3px; height: 14px;
+      border-radius: 2px; background: var(--accent);
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 0.85rem 1.25rem; text-align: left;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.15s ease; cursor: pointer;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    td { padding: 0.85rem 1.25rem; font-size: 0.82rem; }
+    td.mono { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .badge.pass { background: rgba(52,211,153,0.12); color: var(--pass); border: 1px solid rgba(52,211,153,0.2); }
+    .badge.fail { background: rgba(248,113,113,0.12); color: var(--fail); border: 1px solid rgba(248,113,113,0.2); }
+    .badge.running { background: rgba(99,102,241,0.12); color: var(--accent); border: 1px solid rgba(99,102,241,0.2); animation: blink 1.5s ease-in-out infinite; }
+    .badge.domain { background: rgba(34,211,238,0.1); color: var(--accent2); border: 1px solid rgba(34,211,238,0.15); }
+
+    /* ── Score bar ── */
+    .score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .score-bar {
+      flex: 1; height: 6px; border-radius: 99px;
+      background: rgba(255,255,255,0.06); overflow: hidden; min-width: 60px;
+    }
+    .score-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.6s cubic-bezier(.25,.46,.45,.94);
+    }
+    .score-text { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--text-dim); min-width: 36px; text-align: right; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 3rem 1rem;
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+
+    /* ── Episode detail panel ── */
+    .detail-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      display: none; flex-direction: column; gap: 1rem;
+    }
+    .detail-panel.open { display: flex; }
+    .detail-title { font-size: 0.9rem; font-weight: 600; }
+    .episode-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .episode-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.6rem 0.75rem; border-radius: 10px;
+      background: rgba(255,255,255,0.03); font-size: 0.78rem;
+    }
+    .ep-task { flex: 1; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.72rem; }
+
+    /* ── Refresh btn ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-dim);
+      font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 500;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .btn:hover { background: var(--surface-hover); color: var(--text); border-color: var(--accent); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem;
+      background: rgba(20,25,40,0.95); border: 1px solid var(--border);
+      backdrop-filter: blur(20px); border-radius: 12px;
+      padding: 0.75rem 1.25rem; font-size: 0.82rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s cubic-bezier(.25,.46,.45,.94);
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <h1>Omni<span>Bench</span></h1>
+      </div>
+      <span class="version-badge">v1.0.0</span>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator" id="liveIndicator">
+        <div class="live-dot"></div>
+        <span>Live</span>
+      </div>
+      <button class="btn" id="refreshBtn" onclick="loadRuns()">↻ Refresh</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-label">Total Runs</div>
+        <div class="stat-value accent" id="statRuns">—</div>
+        <div class="stat-sub">benchmark sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tasks Passed</div>
+        <div class="stat-value pass" id="statPassed">—</div>
+        <div class="stat-sub">across all runs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tasks Failed</div>
+        <div class="stat-value fail" id="statFailed">—</div>
+        <div class="stat-sub">across all runs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Score</div>
+        <div class="stat-value accent2" id="statScore">—</div>
+        <div class="stat-sub">weighted average</div>
+      </div>
+    </div>
+
+    <!-- Runs Table -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Benchmark Runs</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Run ID</th>
+              <th>Domain</th>
+              <th>Model</th>
+              <th>Started</th>
+              <th>Tasks</th>
+              <th>Pass Rate</th>
+              <th>Avg Score</th>
+            </tr>
+          </thead>
+          <tbody id="runsTable">
+            <tr><td colspan="7"><div class="empty"><div class="empty-icon">🔬</div>Loading benchmark runs…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Episode detail -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Episode Detail</div>
+      </div>
+      <div class="detail-panel" id="detailPanel">
+        <div class="detail-title" id="detailTitle">Select a run to view episodes</div>
+        <div class="episode-list" id="episodeList"></div>
+      </div>
+      <div id="detailPlaceholder" style="color:var(--text-muted);font-size:0.82rem;text-align:center;padding:2rem;">
+        ↑ Click a run row to inspect episodes
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '';
+
+  function showToast(msg, duration = 2500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  function fmtDate(s) {
+    if (!s) return '—';
+    try { return new Date(s).toLocaleString(); } catch { return s; }
+  }
+
+  function scoreBar(score) {
+    const pct = Math.round((score || 0) * 100);
+    return `<div class="score-bar-wrap">
+      <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%"></div></div>
+      <span class="score-text">${pct}%</span>
+    </div>`;
+  }
+
+  function domainBadge(d) {
+    return `<span class="badge domain">${d || '—'}</span>`;
+  }
+
+  async function loadRuns() {
+    try {
+      const res = await fetch(`${API}/api/runs`);
+      const runs = await res.json();
+      renderRuns(runs);
+      updateStats(runs);
+    } catch (e) {
+      document.getElementById('runsTable').innerHTML =
+        `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚠️</div>${e.message}</div></td></tr>`;
+    }
+  }
+
+  function updateStats(runs) {
+    if (!Array.isArray(runs) || runs.length === 0) return;
+    const totalRuns = runs.length;
+    const totalPassed = runs.reduce((s, r) => s + (r.passed || 0), 0);
+    const totalFailed = runs.reduce((s, r) => s + (r.failed || 0), 0);
+    const scores = runs.filter(r => r.score_avg != null).map(r => r.score_avg);
+    const avgScore = scores.length ? (scores.reduce((a,b) => a+b, 0) / scores.length) : 0;
+    document.getElementById('statRuns').textContent = totalRuns;
+    document.getElementById('statPassed').textContent = totalPassed;
+    document.getElementById('statFailed').textContent = totalFailed;
+    document.getElementById('statScore').textContent = (avgScore * 100).toFixed(1) + '%';
+  }
+
+  function renderRuns(runs) {
+    const tbody = document.getElementById('runsTable');
+    if (!Array.isArray(runs) || runs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="empty-icon">🔬</div>No benchmark runs yet.<br/>Run <code style="font-family:monospace">omnibench run</code> to get started.</div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = runs.map(r => {
+      const passRate = r.total_tasks ? ((r.passed / r.total_tasks) * 100).toFixed(0) + '%' : '—';
+      const statusBadge = r.finished_at
+        ? (r.passed >= r.total_tasks && r.total_tasks > 0
+            ? '<span class="badge pass">✓ Done</span>'
+            : '<span class="badge fail">✗ Done</span>')
+        : '<span class="badge running">● Running</span>';
+      return `<tr onclick="loadDetail('${r.run_id}')">
+        <td class="mono">${(r.run_id||'').slice(0,8)}…</td>
+        <td>${domainBadge(r.domain)}</td>
+        <td style="color:var(--text-dim)">${r.model_name || '—'}</td>
+        <td class="mono" style="color:var(--text-muted)">${fmtDate(r.started_at)}</td>
+        <td>${r.total_tasks || 0}</td>
+        <td>${passRate}</td>
+        <td>${scoreBar(r.score_avg)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function loadDetail(runId) {
+    document.getElementById('detailPlaceholder').style.display = 'none';
+    const panel = document.getElementById('detailPanel');
+    panel.classList.add('open');
+    document.getElementById('detailTitle').textContent = `Run: ${runId.slice(0,8)}…`;
+    document.getElementById('episodeList').innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem">Loading…</div>';
+    try {
+      const res = await fetch(`${API}/api/runs/${runId}`);
+      const data = await res.json();
+      const episodes = data.episodes || [];
+      if (!episodes.length) {
+        document.getElementById('episodeList').innerHTML = '<div style="color:var(--text-muted);font-size:0.8rem">No episodes recorded.</div>';
+        return;
+      }
+      document.getElementById('episodeList').innerHTML = episodes.map(ep => `
+        <div class="episode-row">
+          <span class="${ep.passed ? 'badge pass' : 'badge fail'}">${ep.passed ? '✓' : '✗'}</span>
+          <span class="ep-task">${ep.task_id}</span>
+          <span class="badge domain">${ep.domain}</span>
+          <span style="color:var(--text-muted);font-size:0.72rem">${ep.total_steps} steps</span>
+          ${scoreBar(ep.score)}
+        </div>`).join('');
+    } catch (e) {
+      document.getElementById('episodeList').innerHTML = `<div style="color:var(--fail)">${e.message}</div>`;
+    }
+  }
+
+  // SSE live updates
+  function connectSSE() {
+    try {
+      const es = new EventSource('/stream');
+      es.addEventListener('message', () => loadRuns());
+      es.onerror = () => {
+        document.getElementById('liveIndicator').style.opacity = '0.4';
+        setTimeout(connectSSE, 5000);
+      };
+      es.onopen = () => {
+        document.getElementById('liveIndicator').style.opacity = '1';
+      };
+    } catch {}
+  }
+
+  // Init
+  loadRuns();
+  connectSSE();
+  setInterval(loadRuns, 15000);
+</script>
+</body>
+</html>

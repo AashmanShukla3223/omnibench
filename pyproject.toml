@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omnibench"
+version = "1.0.0"
+description = "OmniBench 1.0 — Universal Computer Use Model Benchmark Framework"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "OmniBench Team" }]
+keywords = ["computer-use", "benchmark", "ai", "agents", "onnx", "vlm"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "Pillow>=10.0",
+  "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+onnx = ["onnxruntime>=1.16", "onnx>=1.14"]
+quantize = ["onnxruntime>=1.16", "onnx>=1.14"]
+full = [
+  "onnxruntime>=1.16",
+  "onnx>=1.14",
+  "psutil>=5.9",
+  "scikit-image>=0.21",
+]
+dev = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+]
+
+[project.scripts]
+omnibench = "omnibench.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["omnibench*"]
+
+[tool.setuptools.package-data]
+"omnibench.dashboard.static" = ["*.html", "*.css", "*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
