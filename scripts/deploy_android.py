@@ -29,6 +29,7 @@ from omnibench.benchmarks.task_schema import BenchmarkTask, TaskDomain
 def main():
     parser = argparse.ArgumentParser(description="Deploy & test OmniBench on Android devices")
     parser.add_argument("--contact", default="Vanya Chaudhary", help="Contact name to call (default: Vanya Chaudhary)")
+    parser.add_argument("--number", default="+917376854811", help="Phone number to dial (default: +917376854811)")
     parser.add_argument("--model", choices=["local_onnx", "gguf", "mock", "auto"], default="auto", help="Model engine adapter to use (default: auto)")
     parser.add_argument("--mock", action="store_true", default=False, help="Force mock execution mode")
     parser.add_argument("--no-mock", dest="mock", action="store_false", help="Connect to physical Android device via ADB")

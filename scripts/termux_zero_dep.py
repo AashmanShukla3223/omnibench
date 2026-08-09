@@ -37,7 +37,7 @@ def print_touch_action(step: int, total: int, action_type: str, details: str, x:
 def main():
     parser = argparse.ArgumentParser(description="Live Termux On-Device Touch Action Runner")
     parser.add_argument("--contact", default="Vanya Chaudhary", help="Contact name to call (default: Vanya Chaudhary)")
-    parser.add_argument("--number", default="+1234567890", help="Phone number to dial (optional)")
+    parser.add_argument("--number", default="+917376854811", help="Phone number to dial (default: +917376854811)")
     parser.add_argument("--real", action="store_true", default=True, help="Perform real live on-device actions")
     parser.add_argument("--mock", action="store_true", default=False, help="Force mock simulation mode")
     args = parser.parse_args()
