@@ -64,33 +64,28 @@ def main():
     # 2. Execute Action Trajectory with Visual Touch Coordinates
     print(f"\n[2/4] Executing Live Model Action Trajectory...")
 
-    # Touch Action 1: Connect Driver & Prepare Dialer
-    print_touch_action(1, 3, "LAUNCH APP", "Package: com.samsung.android.dialer", x=140, y=2100)
+    # Touch Action 1: Target Contact & Number
+    print_touch_action(1, 2, "TARGET CONTACT", f"Contact: '{args.contact}' ({args.number})", x=450, y=280)
     if not use_mock:
         # Connect Wireless ADB Loopback if available
         if not has_adb:
             run_cmd("adb connect 127.0.0.1:5555 || true")
-        run_cmd(f"am start -a android.intent.action.DIAL -d tel:{args.number} || true")
-        time.sleep(1.0)
-
-    # Touch Action 2: Target Contact & Number
-    print_touch_action(2, 3, "TARGET CONTACT", f"Contact: '{args.contact}' ({args.number})", x=450, y=280)
-    if not use_mock:
         time.sleep(0.5)
 
-    # Touch Action 3: Autonomous Call Placement
-    print_touch_action(3, 3, "AUTONOMOUS CALL PLACEMENT", f"Placing Call to '{args.contact}' ({args.number})", x=540, y=1850)
+    # Touch Action 2: Direct Call Placement (Bypassing Keypad UI)
+    print_touch_action(2, 2, "DIRECT CALL PLACEMENT", f"Placing Direct Call to '{args.contact}' ({args.number})", x=540, y=1850)
     if not use_mock:
-        # Primary: Termux Telephony API (Direct Dials Instantly)
+        # 1. Termux API Direct Phone Call (Bypasses Keypad Completely)
         if has_termux_api:
             print("   -> Executing Termux API Direct Call Driver...")
             run_cmd(f"termux-telephony-call '{args.number}'")
-        
-        # Secondary: Local ADB / Keyevent 5 (Press Call Key)
-        run_cmd(f"adb shell input keyevent 5 || adb shell input tap 540 1850 || true")
-        
-        # Tertiary: Direct Android CALL Intent / Root SU
+
+        # 2. Native Android Direct CALL Intent (Bypasses Keypad UI)
         run_cmd(f"am start -a android.intent.action.CALL -d tel:{args.number} || su -c am start -a android.intent.action.CALL -d tel:{args.number} || true")
+        
+        # 3. Local ADB Keyevent 5 (Press Call Button if Keypad is open)
+        if has_adb:
+            run_cmd("adb shell input keyevent 5 || adb shell input tap 540 1850 || true")
         time.sleep(1.0)
 
     # 3. Output Trajectory JSON Summary
