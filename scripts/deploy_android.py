@@ -27,8 +27,10 @@ from omnibench.telemetry.logger import TelemetryLogger
 def main():
     parser = argparse.ArgumentParser(description="Deploy & test OmniBench on Android devices")
     parser.add_argument("--contact", default="Vanya Chaudhary", help="Contact name to call (default: Vanya Chaudhary)")
-    parser.add_argument("--mock", action="store_true", default=True, help="Force mock execution mode")
+    parser.add_argument("--mock", action="store_true", default=False, help="Force mock execution mode")
+    parser.add_argument("--no-mock", dest="mock", action="store_false", help="Connect to physical Android device via ADB")
     parser.add_argument("--device-id", default=None, help="ADB Device Serial ID (optional)")
+    parser.set_defaults(mock=True)
     args = parser.parse_args()
 
     print(f"📱 OmniBench 1.0 — Android Deployment Test Target: Samsung Galaxy Phone")

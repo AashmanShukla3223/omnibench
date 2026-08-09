@@ -105,24 +105,27 @@ omnibench dashboard --port 7890
 
 ---
 
-## 📱 Mobile Phone Deployment Example (Samsung Galaxy)
+## 📱 Running OmniBench on your Physical Mobile Phone
 
-OmniBench includes native intent primitives for Android calling & messaging:
+OmniBench 1.0 supports two physical mobile execution methods:
 
-```python
-from omnibench.drivers.android import AndroidDriver
+### Method 1: Host PC controlling Phone via USB / Wireless ADB (Recommended)
+1. **Enable USB Debugging**: On your Android phone, go to **Settings → About Phone → Software Information**, tap **Build Number** 7 times to enable Developer Mode, then turn ON **USB Debugging** in **Settings → Developer Options**.
+2. **Connect Phone**: Plug your phone into your PC via USB cable and verify with `adb devices`.
+3. **Execute Task on Phone**:
+   ```bash
+   # Run live call action to Vanya Chaudhary on your real phone!
+   python scripts/deploy_android.py --contact "Vanya Chaudhary" --no-mock
+   ```
 
-# Connect to Samsung Galaxy phone via ADB (or auto mock fallback)
-driver = AndroidDriver(mock=True)
-driver.connect()
-
-# Launch Samsung Dialer & Call Contact
-driver.launch_app("com.samsung.android.dialer")
-driver.call_contact("Vanya Chaudhary")
-```
-
-Run the Android deployment runner script:
+### Method 2: On-Device Execution directly inside Termux (Android Standalone)
+Run OmniBench directly on your Android phone using our CPU-optimized GGUF model:
 ```bash
+# Inside Termux app on Android:
+pkg update && pkg install python git android-tools -y
+git clone https://github.com/AashmanShukla3223/omnibench.git
+cd omnibench && pip install -e .
+python -c "from huggingface_hub import hf_hub_download; hf_hub_download('AashmanShukla3223/omnibench-1.0-100m', 'model.gguf', local_dir='.')"
 python scripts/deploy_android.py --contact "Vanya Chaudhary"
 ```
 
