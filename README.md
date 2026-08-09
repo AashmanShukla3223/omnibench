@@ -124,6 +124,12 @@ Run just **1 command in Termux** on your Android phone to auto-install dependenc
 pkg install curl -y && bash <(curl -sSL https://raw.githubusercontent.com/AashmanShukla3223/omnibench/master/scripts/termux_setup.sh)
 ```
 
+### Method 3: Free Cloud-Hosted Android Testing
+Test OmniBench 1.0 online without a physical phone:
+1. **GitHub Codespaces (100% Free - 120 hrs/mo)**: Open repository in Codespaces (`Code → Codespaces → Create codespace`) and paste the 1-click Termux script in the terminal!
+2. **Genymotion Cloud**: Launch a cloud Android instance in your browser at [genymotion.com/cloud](https://www.genymotion.com/cloud).
+3. **Appetize.io**: Stream a free web Android emulator at [appetize.io](https://appetize.io).
+
 ---
 
 ## 🤗 Hugging Face Deployment
