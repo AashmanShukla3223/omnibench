@@ -118,14 +118,10 @@ OmniBench 1.0 supports two physical mobile execution methods:
    python scripts/deploy_android.py --contact "Vanya Chaudhary" --no-mock
    ```
 
-### Method 2: On-Device Execution directly inside Termux (Android Standalone)
-Run OmniBench directly on your Android phone using our CPU-optimized GGUF model:
+### Method 2: On-Device Execution directly inside Termux (1-Click Automated Script)
+Run just **1 command in Termux** on your Android phone to auto-install dependencies, download weights, and launch the calling action:
 ```bash
-# Inside Termux app on Android:
-pkg update && pkg install python git android-tools -y
-git clone https://github.com/AashmanShukla3223/omnibench.git
-python scripts/download_model.py --format gguf
-python scripts/deploy_android.py --contact "Vanya Chaudhary"
+pkg install curl -y && bash <(curl -sSL https://raw.githubusercontent.com/AashmanShukla3223/omnibench/master/scripts/termux_setup.sh)
 ```
 
 ---
